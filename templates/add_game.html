@@ -46,16 +46,40 @@ endblock %} {% block content %}
 										Frame {{ loop.index }}
 									</h6>
 
-									<div class="mb-3">
-										{{ frame_form.score.label(class="form-label") }} {{
-										frame_form.score(class="form-control score-input") }} {% if
-										frame_form.score.errors %}
-										<div class="text-danger">
-											{% for error in frame_form.score.errors %}
-											<small>{{ error }}</small>
-											{% endfor %}
+									<div class="row mb-3">
+										<div class="col-4">
+											{{ frame_form.roll1.label(class="form-label") }} {{
+											frame_form.roll1(class="form-control roll-input") }} {% if
+											frame_form.roll1.errors %}
+											<div class="text-danger">
+												{% for error in frame_form.roll1.errors %}
+												<small>{{ error }}</small>
+												{% endfor %}
+											</div>
+											{% endif %}
 										</div>
-										{% endif %}
+										<div class="col-4">
+											{{ frame_form.roll2.label(class="form-label") }} {{
+											frame_form.roll2(class="form-control roll-input") }} {% if
+											frame_form.roll2.errors %}
+											<div class="text-danger">
+												{% for error in frame_form.roll2.errors %}
+												<small>{{ error }}</small>
+												{% endfor %}
+											</div>
+											{% endif %}
+										</div>
+										<div class="col-4">
+											{{ frame_form.roll3.label(class="form-label") }} {{
+											frame_form.roll3(class="form-control roll-input") }} {% if
+											frame_form.roll3.errors %}
+											<div class="text-danger">
+												{% for error in frame_form.roll3.errors %}
+												<small>{{ error }}</small>
+												{% endfor %}
+											</div>
+											{% endif %}
+										</div>
 									</div>
 
 									<div class="mb-3">
@@ -102,59 +126,122 @@ endblock %} {% block content %}
 {% endblock %} {% block scripts %}
 <script>
 	document.addEventListener("DOMContentLoaded", function () {
-		const scoreInputs = document.querySelectorAll(".score-input");
+		const rollInputs = document.querySelectorAll(".roll-input");
 		const strikeCheckboxes = document.querySelectorAll(".strike-checkbox");
 		const spareCheckboxes = document.querySelectorAll(".spare-checkbox");
 		const totalScoreElement = document.getElementById("totalScore");
 
-		function updateTotalScore() {
-			let total = 0;
-			scoreInputs.forEach((input) => {
-				const value = parseInt(input.value) || 0;
-				total += value;
-			});
-			totalScoreElement.textContent = total;
+		function calculateBowlingScore() {
+			const frames = [];
+
+			// Collect frame data
+			for (let i = 0; i < 10; i++) {
+				const frameCard = document.querySelector(`[data-frame="${i + 1}"]`);
+				const roll1Input = frameCard.querySelector('input[name$="roll1"]');
+				const roll2Input = frameCard.querySelector('input[name$="roll2"]');
+				const roll3Input = frameCard.querySelector('input[name$="roll3"]');
+				const strikeCheckbox = frameCard.querySelector(".strike-checkbox");
+				const spareCheckbox = frameCard.querySelector(".spare-checkbox");
+
+				const roll1 = parseInt(roll1Input.value) || 0;
+				const roll2 = parseInt(roll2Input.value) || 0;
+				const roll3 = parseInt(roll3Input.value) || 0;
+				const isStrike = strikeCheckbox.checked;
+				const isSpare = spareCheckbox.checked;
+
+				frames.push({
+					roll1,
+					roll2,
+					roll3,
+					isStrike,
+					isSpare,
+					frameNumber: i + 1,
+				});
+			}
+
+			// Calculate score using bowling rules
+			let totalScore = 0;
+			const frameScores = [];
+
+			for (let i = 0; i < frames.length; i++) {
+				const frame = frames[i];
+				let frameScore = 0;
+
+				if (frame.isStrike) {
+					frameScore = 10;
+					// Add next 2 rolls
+					if (i < frames.length - 1) {
+						const nextFrame = frames[i + 1];
+						if (nextFrame.isStrike) {
+							frameScore += 10;
+							if (i + 1 < frames.length - 1) {
+								frameScore += frames[i + 2].roll1;
+							} else {
+								frameScore += nextFrame.roll2;
+							}
+						} else {
+							frameScore += nextFrame.roll1 + nextFrame.roll2;
+						}
+					} else {
+						frameScore += frame.roll2 + frame.roll3;
+					}
+				} else if (frame.isSpare) {
+					frameScore = 10;
+					if (i < frames.length - 1) {
+						frameScore += frames[i + 1].roll1;
+					} else {
+						frameScore += frame.roll3;
+					}
+				} else {
+					frameScore = frame.roll1 + frame.roll2;
+				}
+
+				totalScore += frameScore;
+				frameScores.push(frameScore);
+			}
+
+			totalScoreElement.textContent = totalScore;
+			return totalScore;
 		}
 
-		function handleStrikeCheckbox(checkbox, scoreInput) {
+		function handleStrikeCheckbox(checkbox) {
 			if (checkbox.checked) {
-				scoreInput.value = 10;
-				// Uncheck spare checkbox
 				const frameCard = checkbox.closest(".frame-card");
+				const roll1Input = frameCard.querySelector('input[name$="roll1"]');
+				const roll2Input = frameCard.querySelector('input[name$="roll2"]');
 				const spareCheckbox = frameCard.querySelector(".spare-checkbox");
+
+				roll1Input.value = 10;
+				roll2Input.value = 0;
 				spareCheckbox.checked = false;
 			}
-			updateTotalScore();
+			calculateBowlingScore();
 		}
 
-		function handleSpareCheckbox(checkbox, scoreInput) {
+		function handleSpareCheckbox(checkbox) {
 			if (checkbox.checked) {
-				// Uncheck strike checkbox
 				const frameCard = checkbox.closest(".frame-card");
 				const strikeCheckbox = frameCard.querySelector(".strike-checkbox");
 				strikeCheckbox.checked = false;
 			}
-			updateTotalScore();
+			calculateBowlingScore();
 		}
 
 		// Add event listeners
-		scoreInputs.forEach((input, index) => {
-			input.addEventListener("input", updateTotalScore);
+		rollInputs.forEach((input) => {
+			input.addEventListener("input", calculateBowlingScore);
+		});
 
-			const frameCard = input.closest(".frame-card");
-			const strikeCheckbox = frameCard.querySelector(".strike-checkbox");
-			const spareCheckbox = frameCard.querySelector(".spare-checkbox");
+		strikeCheckboxes.forEach((checkbox) => {
+			checkbox.addEventListener("change", () => handleStrikeCheckbox(checkbox));
+		});
 
-			strikeCheckbox.addEventListener("change", () =>
-				handleStrikeCheckbox(strikeCheckbox, input)
-			);
-			spareCheckbox.addEventListener("change", () =>
-				handleSpareCheckbox(spareCheckbox, input)
-			);
+		spareCheckboxes.forEach((checkbox) => {
+			checkbox.addEventListener("change", () => handleSpareCheckbox(checkbox));
 		});
 
 		// Initial calculation
-		updateTotalScore();
+		calculateBowlingScore();
 	});
 </script>
 {% endblock %}

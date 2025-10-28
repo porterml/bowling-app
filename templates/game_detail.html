@@ -101,7 +101,35 @@ endblock %} {% block content %}
 								<h6 class="card-title">Frame {{ frame.frame_number }}</h6>
 
 								<div class="mb-2">
-									<span class="badge bg-primary fs-5">{{ frame.score }}</span>
+									<div class="row text-center">
+										<div class="col-4">
+											<small class="text-muted">Roll 1</small>
+											<div class="fw-bold">{{ frame.roll1 }}</div>
+										</div>
+										<div class="col-4">
+											<small class="text-muted">Roll 2</small>
+											<div class="fw-bold">{{ frame.roll2 }}</div>
+										</div>
+										<div class="col-4">
+											<small class="text-muted">Roll 3</small>
+											<div class="fw-bold">{{ frame.roll3 }}</div>
+										</div>
+									</div>
+									<hr class="my-2" />
+									<div class="row text-center">
+										<div class="col-6">
+											<small class="text-muted">Frame Score</small>
+											<div class="badge bg-primary fs-6">
+												{{ frame.frame_score }}
+											</div>
+										</div>
+										<div class="col-6">
+											<small class="text-muted">Running Total</small>
+											<div class="badge bg-success fs-6">
+												{{ frame.running_total }}
+											</div>
+										</div>
+									</div>
 								</div>
 
 								<div class="mb-2">
@@ -156,7 +184,8 @@ endblock %} {% block content %}
 	    // Score Progression Chart
 	    const scoreCtx = document.getElementById('scoreChart').getContext('2d');
 	    const frameNumbers = {{ frames|map(attribute='frame_number')|list|tojson }};
-	    const frameScores = {{ frames|map(attribute='score')|list|tojson }};
+	    const frameScores = {{ frames|map(attribute='frame_score')|list|tojson }};
+	    const runningTotals = {{ frames|map(attribute='running_total')|list|tojson }};
 
 	    const scoreChart = new Chart(scoreCtx, {
 	        type: 'line',
@@ -168,8 +197,18 @@ endblock %} {% block content %}
 	                borderColor: 'rgba(54, 162, 235, 1)',
 	                backgroundColor: 'rgba(54, 162, 235, 0.1)',
 	                borderWidth: 2,
-	                fill: true,
-	                tension: 0.1
+	                fill: false,
+	                tension: 0.1,
+	                yAxisID: 'y'
+	            }, {
+	                label: 'Running Total',
+	                data: runningTotals,
+	                borderColor: 'rgba(75, 192, 192, 1)',
+	                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+	                borderWidth: 2,
+	                fill: false,
+	                tension: 0.1,
+	                yAxisID: 'y1'
 	            }]
 	        },
 	        options: {
@@ -177,13 +216,34 @@ endblock %} {% block content %}
 	            maintainAspectRatio: false,
 	            scales: {
 	                y: {
+	                    type: 'linear',
+	                    display: true,
+	                    position: 'left',
 	                    beginAtZero: true,
-	                    max: 10
+	                    max: 30,
+	                    title: {
+	                        display: true,
+	                        text: 'Frame Score'
+	                    }
+	                },
+	                y1: {
+	                    type: 'linear',
+	                    display: true,
+	                    position: 'right',
+	                    beginAtZero: true,
+	                    max: 300,
+	                    title: {
+	                        display: true,
+	                        text: 'Running Total'
+	                    },
+	                    grid: {
+	                        drawOnChartArea: false,
+	                    },
 	                }
 	            },
 	            plugins: {
 	                legend: {
-	                    display: false
+	                    display: true
 	                }
 	            }
 	        }

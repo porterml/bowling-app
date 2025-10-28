@@ -45,7 +45,7 @@ def index():
         for game in games:
             frame = Frame.query.filter_by(game_id=game.id, frame_number=frame_num).first()
             if frame:
-                frame_scores.append(frame.score)
+                frame_scores.append(frame.frame_score)
         
         if frame_scores:
             avg = sum(frame_scores) / len(frame_scores)
@@ -93,25 +93,23 @@ def add_game():
         db.session.add(game)
         db.session.flush()  # Get the game ID
         
-        # Calculate total score
-        total_score = 0
-        
         # Add frames
         for i, frame_form in enumerate(form.frames):
             frame = Frame(
                 game_id=game.id,
                 frame_number=i + 1,
-                score=frame_form.score.data,
+                roll1=frame_form.roll1.data,
+                roll2=frame_form.roll2.data,
+                roll3=frame_form.roll3.data,
                 is_strike=frame_form.is_strike.data,
                 is_spare=frame_form.is_spare.data,
                 is_split=frame_form.is_split.data,
                 notes=frame_form.notes.data
             )
             db.session.add(frame)
-            total_score += frame_form.score.data
         
-        # Update game with total score
-        game.total_score = total_score
+        # Calculate proper bowling score with bonuses
+        game.calculate_bowling_score()
         db.session.commit()
         
         flash('Game added successfully!', 'success')
