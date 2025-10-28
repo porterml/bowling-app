@@ -1,0 +1,231 @@
+/* Custom CSS for Bowling Analytics App */
+
+:root {
+	--bowling-primary: #1e3a8a;
+	--bowling-secondary: #64748b;
+	--bowling-success: #059669;
+	--bowling-warning: #d97706;
+	--bowling-danger: #dc2626;
+	--bowling-light: #f8fafc;
+}
+
+body {
+	background-color: var(--bowling-light);
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navigation */
+.navbar-brand {
+	font-weight: bold;
+	font-size: 1.5rem;
+}
+
+/* Cards */
+.card {
+	border: none;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	border-radius: 10px;
+	transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Frame Cards */
+.frame-card {
+	border: 2px solid #e5e7eb;
+	transition: all 0.3s ease;
+}
+
+.frame-card:hover {
+	border-color: var(--bowling-primary);
+	transform: scale(1.02);
+}
+
+.frame-card .card-body {
+	padding: 1rem;
+}
+
+.frame-card .form-check-label {
+	font-size: 0.85rem;
+	font-weight: 500;
+}
+
+/* Frame Detail Cards */
+.frame-detail-card {
+	transition: all 0.3s ease;
+}
+
+.frame-detail-card:hover {
+	transform: scale(1.05);
+}
+
+/* Strike/Spare/Split Color Coding */
+.text-warning {
+	color: var(--bowling-warning) !important;
+}
+
+.text-secondary {
+	color: var(--bowling-secondary) !important;
+}
+
+.text-danger {
+	color: var(--bowling-danger) !important;
+}
+
+/* Progress Bars */
+.progress {
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.progress-bar {
+	border-radius: 10px;
+}
+
+/* Tables */
+.table {
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.table thead th {
+	border-bottom: 2px solid var(--bowling-primary);
+	background-color: var(--bowling-light);
+	font-weight: 600;
+}
+
+.table-hover tbody tr:hover {
+	background-color: rgba(30, 58, 138, 0.05);
+}
+
+/* Badges */
+.badge {
+	font-size: 0.9rem;
+	padding: 0.5rem 0.75rem;
+	border-radius: 8px;
+}
+
+/* Buttons */
+.btn {
+	border-radius: 8px;
+	font-weight: 500;
+	transition: all 0.2s ease;
+}
+
+.btn:hover {
+	transform: translateY(-1px);
+}
+
+/* Forms */
+.form-control {
+	border-radius: 8px;
+	border: 2px solid #e5e7eb;
+	transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+	border-color: var(--bowling-primary);
+	box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+}
+
+.form-check-input:checked {
+	background-color: var(--bowling-primary);
+	border-color: var(--bowling-primary);
+}
+
+/* Charts */
+canvas {
+	border-radius: 8px;
+}
+
+/* Alerts */
+.alert {
+	border-radius: 10px;
+	border: none;
+}
+
+/* Footer */
+footer {
+	margin-top: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.display-4 {
+		font-size: 2rem;
+	}
+
+	.display-5 {
+		font-size: 1.75rem;
+	}
+
+	.frame-card {
+		margin-bottom: 1rem;
+	}
+
+	.table-responsive {
+		font-size: 0.9rem;
+	}
+
+	.btn-group .btn {
+		padding: 0.25rem 0.5rem;
+	}
+}
+
+@media (max-width: 576px) {
+	.container {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+
+	.card-body {
+		padding: 1rem;
+	}
+
+	.frame-card .card-body {
+		padding: 0.75rem;
+	}
+
+	.btn-lg {
+		padding: 0.75rem 1.5rem;
+		font-size: 1rem;
+	}
+}
+
+/* Animation for loading states */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.fade-in {
+	animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--bowling-primary);
+	border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #1e40af;
+}

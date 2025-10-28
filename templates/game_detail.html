@@ -1,0 +1,215 @@
+{% extends "base.html" %} {% block title %}Game Details - Bowling Analytics{%
+endblock %} {% block content %}
+<div class="row mb-4">
+	<div class="col-12">
+		<div class="d-flex justify-content-between align-items-center">
+			<h1 class="display-5">
+				<i class="fas fa-bowling-ball me-3"></i>Game Details
+			</h1>
+			<div>
+				<a href="{{ url_for('games') }}" class="btn btn-secondary me-2">
+					<i class="fas fa-arrow-left me-1"></i>Back to Games
+				</a>
+				<button
+					type="button"
+					class="btn btn-danger"
+					onclick="deleteGame({{ game.id }})"
+				>
+					<i class="fas fa-trash me-1"></i>Delete Game
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<!-- Game Info -->
+	<div class="col-lg-4 mb-4">
+		<div class="card">
+			<div class="card-header">
+				<h5 class="card-title mb-0">
+					<i class="fas fa-info-circle me-2"></i>Game Information
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="mb-3">
+					<strong>Date:</strong> {{ game.date.strftime('%B %d, %Y') }}
+				</div>
+				<div class="mb-3">
+					<strong>Total Score:</strong>
+					<span class="badge bg-primary fs-5">{{ game.total_score }}</span>
+				</div>
+				{% if game.notes %}
+				<div class="mb-3">
+					<strong>Notes:</strong>
+					<p class="mt-1">{{ game.notes }}</p>
+				</div>
+				{% endif %}
+
+				<!-- Quick Stats -->
+				<hr />
+				<h6>Quick Stats:</h6>
+				<div class="row text-center">
+					<div class="col-4">
+						<div class="text-warning">
+							<i class="fas fa-bolt fa-2x"></i>
+							<div class="fw-bold">
+								{{ frames|selectattr('is_strike')|list|length }}
+							</div>
+							<small>Strikes</small>
+						</div>
+					</div>
+					<div class="col-4">
+						<div class="text-secondary">
+							<i class="fas fa-circle fa-2x"></i>
+							<div class="fw-bold">
+								{{ frames|selectattr('is_spare')|list|length }}
+							</div>
+							<small>Spares</small>
+						</div>
+					</div>
+					<div class="col-4">
+						<div class="text-danger">
+							<i class="fas fa-exclamation-triangle fa-2x"></i>
+							<div class="fw-bold">
+								{{ frames|selectattr('is_split')|list|length }}
+							</div>
+							<small>Splits</small>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Frame Details -->
+	<div class="col-lg-8">
+		<div class="card">
+			<div class="card-header">
+				<h5 class="card-title mb-0">
+					<i class="fas fa-list-ol me-2"></i>Frame Breakdown
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="row g-3">
+					{% for frame in frames %}
+					<div class="col-md-6 col-lg-4">
+						<div
+							class="card frame-detail-card {% if frame.is_strike %}border-warning{% elif frame.is_spare %}border-secondary{% elif frame.is_split %}border-danger{% endif %}"
+						>
+							<div class="card-body text-center">
+								<h6 class="card-title">Frame {{ frame.frame_number }}</h6>
+
+								<div class="mb-2">
+									<span class="badge bg-primary fs-5">{{ frame.score }}</span>
+								</div>
+
+								<div class="mb-2">
+									{% if frame.is_strike %}
+									<span class="badge bg-warning text-dark">
+										<i class="fas fa-bolt me-1"></i>Strike
+									</span>
+									{% elif frame.is_spare %}
+									<span class="badge bg-secondary">
+										<i class="fas fa-circle me-1"></i>Spare
+									</span>
+									{% elif frame.is_split %}
+									<span class="badge bg-danger">
+										<i class="fas fa-exclamation-triangle me-1"></i>Split
+									</span>
+									{% endif %}
+								</div>
+
+								{% if frame.notes %}
+								<div class="mt-2">
+									<small class="text-muted">{{ frame.notes }}</small>
+								</div>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Score Chart -->
+<div class="row mt-4">
+	<div class="col-12">
+		<div class="card">
+			<div class="card-header">
+				<h5 class="card-title mb-0">
+					<i class="fas fa-chart-line me-2"></i>Score Progression
+				</h5>
+			</div>
+			<div class="card-body">
+				<canvas id="scoreChart" height="100"></canvas>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+	    // Score Progression Chart
+	    const scoreCtx = document.getElementById('scoreChart').getContext('2d');
+	    const frameNumbers = {{ frames|map(attribute='frame_number')|list|tojson }};
+	    const frameScores = {{ frames|map(attribute='score')|list|tojson }};
+
+	    const scoreChart = new Chart(scoreCtx, {
+	        type: 'line',
+	        data: {
+	            labels: frameNumbers,
+	            datasets: [{
+	                label: 'Frame Score',
+	                data: frameScores,
+	                borderColor: 'rgba(54, 162, 235, 1)',
+	                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+	                borderWidth: 2,
+	                fill: true,
+	                tension: 0.1
+	            }]
+	        },
+	        options: {
+	            responsive: true,
+	            maintainAspectRatio: false,
+	            scales: {
+	                y: {
+	                    beginAtZero: true,
+	                    max: 10
+	                }
+	            },
+	            plugins: {
+	                legend: {
+	                    display: false
+	                }
+	            }
+	        }
+	    });
+	});
+
+	function deleteGame(gameId) {
+	    if (confirm('Are you sure you want to delete this game? This action cannot be undone.')) {
+	        // Create a form to submit the DELETE request
+	        const form = document.createElement('form');
+	        form.method = 'POST';
+	        form.action = '{{ url_for("delete_game", game_id=0) }}'.replace('0', gameId);
+
+	        // Add CSRF token
+	        const csrfToken = document.querySelector('meta[name=csrf-token]');
+	        if (csrfToken) {
+	            const input = document.createElement('input');
+	            input.type = 'hidden';
+	            input.name = 'csrf_token';
+	            input.value = csrfToken.getAttribute('content');
+	            form.appendChild(input);
+	        }
+
+	        document.body.appendChild(form);
+	        form.submit();
+	    }
+	}
+</script>
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends "base.html" %} {% block title %}Dashboard - Bowling Analytics{%
+endblock %} {% block content %}
+<div class="row mb-4">
+	<div class="col-12">
+		<h1 class="display-4 text-center mb-4">
+			<i class="fas fa-chart-line text-primary me-3"></i>Bowling Analytics
+			Dashboard
+		</h1>
+	</div>
+</div>
+
+{% if total_games == 0 %}
+<div class="row">
+	<div class="col-lg-8 mx-auto">
+		<div class="card text-center">
+			<div class="card-body py-5">
+				<i class="fas fa-bowling-ball fa-4x text-muted mb-4"></i>
+				<h3 class="card-title">No Games Yet</h3>
+				<p class="card-text text-muted">
+					Start tracking your bowling performance by adding your first game!
+				</p>
+				<a href="{{ url_for('add_game') }}" class="btn btn-primary btn-lg">
+					<i class="fas fa-plus me-2"></i>Add Your First Game
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+{% else %}
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+	<div class="col-md-3 mb-3">
+		<div class="card bg-primary text-white">
+			<div class="card-body text-center">
+				<i class="fas fa-gamepad fa-2x mb-2"></i>
+				<h4 class="card-title">{{ total_games }}</h4>
+				<p class="card-text">Total Games</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3 mb-3">
+		<div class="card bg-success text-white">
+			<div class="card-body text-center">
+				<i class="fas fa-chart-bar fa-2x mb-2"></i>
+				<h4 class="card-title">{{ avg_score }}</h4>
+				<p class="card-text">Average Score</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3 mb-3">
+		<div class="card bg-warning text-white">
+			<div class="card-body text-center">
+				<i class="fas fa-trophy fa-2x mb-2"></i>
+				<h4 class="card-title">{{ high_score }}</h4>
+				<p class="card-text">Highest Score</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3 mb-3">
+		<div class="card bg-info text-white">
+			<div class="card-body text-center">
+				<i class="fas fa-chart-line fa-2x mb-2"></i>
+				<h4 class="card-title">{{ low_score }}</h4>
+				<p class="card-text">Lowest Score</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+	<!-- Frame Analysis Chart -->
+	<div class="col-lg-8 mb-4">
+		<div class="card">
+			<div class="card-header">
+				<h5 class="card-title mb-0">
+					<i class="fas fa-chart-bar me-2"></i>Average Score by Frame
+				</h5>
+			</div>
+			<div class="card-body">
+				<canvas id="frameChart" height="100"></canvas>
+			</div>
+		</div>
+	</div>
+
+	<!-- Strike/Spare/Split Stats -->
+	<div class="col-lg-4 mb-4">
+		<div class="card">
+			<div class="card-header">
+				<h5 class="card-title mb-0">
+					<i class="fas fa-target me-2"></i>Performance Stats
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="mb-3">
+					<div class="d-flex justify-content-between align-items-center mb-1">
+						<span class="text-warning"
+							><i class="fas fa-bolt me-1"></i>Strikes</span
+						>
+						<span class="fw-bold">{{ stats.strikes.percentage }}%</span>
+					</div>
+					<div class="progress" style="height: 8px">
+						<div
+							class="progress-bar bg-warning"
+							style="width: {{ stats.strikes.percentage }}%"
+						></div>
+					</div>
+					<small class="text-muted">{{ stats.strikes.count }} total</small>
+				</div>
+
+				<div class="mb-3">
+					<div class="d-flex justify-content-between align-items-center mb-1">
+						<span class="text-secondary"
+							><i class="fas fa-circle me-1"></i>Spares</span
+						>
+						<span class="fw-bold">{{ stats.spares.percentage }}%</span>
+					</div>
+					<div class="progress" style="height: 8px">
+						<div
+							class="progress-bar bg-secondary"
+							style="width: {{ stats.spares.percentage }}%"
+						></div>
+					</div>
+					<small class="text-muted">{{ stats.spares.count }} total</small>
+				</div>
+
+				<div class="mb-3">
+					<div class="d-flex justify-content-between align-items-center mb-1">
+						<span class="text-danger"
+							><i class="fas fa-exclamation-triangle me-1"></i>Splits</span
+						>
+						<span class="fw-bold">{{ stats.splits.percentage }}%</span>
+					</div>
+					<div class="progress" style="height: 8px">
+						<div
+							class="progress-bar bg-danger"
+							style="width: {{ stats.splits.percentage }}%"
+						></div>
+					</div>
+					<small class="text-muted">{{ stats.splits.count }} total</small>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Recent Games -->
+<div class="row">
+	<div class="col-12">
+		<div class="card">
+			<div
+				class="card-header d-flex justify-content-between align-items-center"
+			>
+				<h5 class="card-title mb-0">
+					<i class="fas fa-history me-2"></i>Recent Games
+				</h5>
+				<a href="{{ url_for('games') }}" class="btn btn-outline-primary btn-sm"
+					>View All</a
+				>
+			</div>
+			<div class="card-body">
+				{% if recent_games %}
+				<div class="table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th>Date</th>
+								<th>Score</th>
+								<th>Strikes</th>
+								<th>Spares</th>
+								<th>Splits</th>
+								<th>Notes</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in recent_games %}
+							<tr>
+								<td>{{ game.date.strftime('%m/%d/%Y') }}</td>
+								<td>
+									<span class="badge bg-primary fs-6"
+										>{{ game.total_score }}</span
+									>
+								</td>
+								<td>
+									{% set strikes =
+									game.frames|selectattr('is_strike')|list|length %}
+									<span class="text-warning">{{ strikes }}</span>
+								</td>
+								<td>
+									{% set spares = game.frames|selectattr('is_spare')|list|length
+									%}
+									<span class="text-secondary">{{ spares }}</span>
+								</td>
+								<td>
+									{% set splits = game.frames|selectattr('is_split')|list|length
+									%}
+									<span class="text-danger">{{ splits }}</span>
+								</td>
+								<td>
+									{% if game.notes %}
+									<span
+										class="text-truncate d-inline-block"
+										style="max-width: 150px"
+										title="{{ game.notes }}"
+									>
+										{{ game.notes }}
+									</span>
+									{% else %}
+									<span class="text-muted">-</span>
+									{% endif %}
+								</td>
+								<td>
+									<a
+										href="{{ url_for('game_detail', game_id=game.id) }}"
+										class="btn btn-sm btn-outline-primary"
+									>
+										<i class="fas fa-eye"></i>
+									</a>
+								</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<p class="text-muted text-center py-3">No games found.</p>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endif %} {% endblock %} {% block scripts %}
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+	    {% if total_games > 0 %}
+	    // Frame Analysis Chart
+	    const frameCtx = document.getElementById('frameChart').getContext('2d');
+	    const frameChart = new Chart(frameCtx, {
+	        type: 'bar',
+	        data: {
+	            labels: {{ frame_averages|map(attribute='frame')|list|tojson }},
+	            datasets: [{
+	                label: 'Average Score',
+	                data: {{ frame_averages|map(attribute='average')|list|tojson }},
+	                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+	                borderColor: 'rgba(54, 162, 235, 1)',
+	                borderWidth: 1
+	            }]
+	        },
+	        options: {
+	            responsive: true,
+	            maintainAspectRatio: false,
+	            scales: {
+	                y: {
+	                    beginAtZero: true,
+	                    max: 10
+	                }
+	            },
+	            plugins: {
+	                legend: {
+	                    display: false
+	                }
+	            }
+	        }
+	    });
+	    {% endif %}
+	});
+</script>
+{% endblock %}

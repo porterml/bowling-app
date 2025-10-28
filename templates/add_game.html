@@ -1,0 +1,160 @@
+{% extends "base.html" %} {% block title %}Add New Game - Bowling Analytics{%
+endblock %} {% block content %}
+<div class="row">
+	<div class="col-lg-8 mx-auto">
+		<div class="card">
+			<div class="card-header">
+				<h3 class="card-title mb-0">
+					<i class="fas fa-plus-circle me-2"></i>Add New Bowling Game
+				</h3>
+			</div>
+			<div class="card-body">
+				<form method="POST" id="gameForm">
+					{{ form.hidden_tag() }}
+
+					<div class="row mb-4">
+						<div class="col-md-6">
+							{{ form.date.label(class="form-label") }} {{
+							form.date(class="form-control") }} {% if form.date.errors %}
+							<div class="text-danger">
+								{% for error in form.date.errors %}
+								<small>{{ error }}</small>
+								{% endfor %}
+							</div>
+							{% endif %}
+						</div>
+						<div class="col-md-6">
+							<label class="form-label">Total Score</label>
+							<div class="form-control-plaintext fw-bold fs-4" id="totalScore">
+								0
+							</div>
+						</div>
+					</div>
+
+					<div class="mb-4">
+						{{ form.game_notes.label(class="form-label") }} {{
+						form.game_notes(class="form-control") }}
+					</div>
+
+					<h5 class="mb-3">Frame Scores</h5>
+					<div class="row g-3">
+						{% for frame_form in form.frames %}
+						<div class="col-lg-6 col-xl-4">
+							<div class="card frame-card" data-frame="{{ loop.index }}">
+								<div class="card-body">
+									<h6 class="card-title text-center mb-3">
+										Frame {{ loop.index }}
+									</h6>
+
+									<div class="mb-3">
+										{{ frame_form.score.label(class="form-label") }} {{
+										frame_form.score(class="form-control score-input") }} {% if
+										frame_form.score.errors %}
+										<div class="text-danger">
+											{% for error in frame_form.score.errors %}
+											<small>{{ error }}</small>
+											{% endfor %}
+										</div>
+										{% endif %}
+									</div>
+
+									<div class="mb-3">
+										<div class="form-check form-check-inline">
+											{{ frame_form.is_strike(class="form-check-input
+											strike-checkbox") }} {{
+											frame_form.is_strike.label(class="form-check-label
+											text-warning") }}
+										</div>
+										<div class="form-check form-check-inline">
+											{{ frame_form.is_spare(class="form-check-input
+											spare-checkbox") }} {{
+											frame_form.is_spare.label(class="form-check-label
+											text-secondary") }}
+										</div>
+										<div class="form-check form-check-inline">
+											{{ frame_form.is_split(class="form-check-input
+											split-checkbox") }} {{
+											frame_form.is_split.label(class="form-check-label
+											text-danger") }}
+										</div>
+									</div>
+
+									<div class="mb-2">
+										{{ frame_form.notes(class="form-control form-control-sm") }}
+									</div>
+								</div>
+							</div>
+						</div>
+						{% endfor %}
+					</div>
+
+					<div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+						<a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2"
+							>Cancel</a
+						>
+						{{ form.submit(class="btn btn-primary") }}
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		const scoreInputs = document.querySelectorAll(".score-input");
+		const strikeCheckboxes = document.querySelectorAll(".strike-checkbox");
+		const spareCheckboxes = document.querySelectorAll(".spare-checkbox");
+		const totalScoreElement = document.getElementById("totalScore");
+
+		function updateTotalScore() {
+			let total = 0;
+			scoreInputs.forEach((input) => {
+				const value = parseInt(input.value) || 0;
+				total += value;
+			});
+			totalScoreElement.textContent = total;
+		}
+
+		function handleStrikeCheckbox(checkbox, scoreInput) {
+			if (checkbox.checked) {
+				scoreInput.value = 10;
+				// Uncheck spare checkbox
+				const frameCard = checkbox.closest(".frame-card");
+				const spareCheckbox = frameCard.querySelector(".spare-checkbox");
+				spareCheckbox.checked = false;
+			}
+			updateTotalScore();
+		}
+
+		function handleSpareCheckbox(checkbox, scoreInput) {
+			if (checkbox.checked) {
+				// Uncheck strike checkbox
+				const frameCard = checkbox.closest(".frame-card");
+				const strikeCheckbox = frameCard.querySelector(".strike-checkbox");
+				strikeCheckbox.checked = false;
+			}
+			updateTotalScore();
+		}
+
+		// Add event listeners
+		scoreInputs.forEach((input, index) => {
+			input.addEventListener("input", updateTotalScore);
+
+			const frameCard = input.closest(".frame-card");
+			const strikeCheckbox = frameCard.querySelector(".strike-checkbox");
+			const spareCheckbox = frameCard.querySelector(".spare-checkbox");
+
+			strikeCheckbox.addEventListener("change", () =>
+				handleStrikeCheckbox(strikeCheckbox, input)
+			);
+			spareCheckbox.addEventListener("change", () =>
+				handleSpareCheckbox(spareCheckbox, input)
+			);
+		});
+
+		// Initial calculation
+		updateTotalScore();
+	});
+</script>
+{% endblock %}
